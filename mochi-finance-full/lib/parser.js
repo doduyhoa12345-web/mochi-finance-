@@ -1,0 +1,12 @@
+const aliases=[
+ ['cafe','Cafe'],['cà phê','Cafe'],['trưa','Ăn trưa'],['ăn trưa','Ăn trưa'],['tối','Ăn tối'],['ăn tối','Ăn tối'],['ăn vặt','Ăn vặt'],['grab','Di chuyển'],['taxi','Di chuyển'],['di chuyển','Di chuyển'],['siêu thị','Siêu thị'],['winmart','Siêu thị'],['shopee','Mua đồ cá nhân'],['mua đồ','Mua đồ cá nhân'],['buy stuff','Buy Stuff'],['kudog','Kudog'],['tiền nhà','Tiền nhà'],['bệnh viện','Bệnh viện'],['thuốc','Thuốc'],['quà','Quà tặng'],['cưới','Cưới xin'],['vé máy bay','Vé máy bay về HN']
+];
+export function parseAmount(raw){let s=raw.toLowerCase().replace(/\s/g,'').replace(/,/g,'.');let m=s.match(/(\d+(?:\.\d+)?)\s*(tr|triệu|m|k|nghìn|ngàn)?/i);if(!m)return null;let n=Number(m[1]),u=m[2];if(['tr','triệu','m'].includes(u))n*=1e6;else if(['k','nghìn','ngàn'].includes(u))n*=1e3;return Math.round(n)}
+function categoryOf(text){let l=text.toLowerCase();for(const [a,c] of aliases)if(l.includes(a))return c;return 'Ăn uống'}
+function accountOf(text,cat){let l=text.toLowerCase();if(l.includes('hsbc'))return 'HSBC Credit';if(l.includes('tech credit'))return 'Tech Credit';if(l.includes('vietin'))return 'VietinBank';if(l.includes('tiết kiệm'))return 'Tech tiết kiệm';if(l.includes('tiền nhà'))return 'Tech tiền nhà';if(['Di chuyển','Kudog'].includes(cat))return 'Tech Credit';if(['Mua đồ cá nhân','Buy Stuff'].includes(cat))return 'HSBC Credit';return 'Tech chính'}
+export function parseInput(input){let text=input.trim();let low=text.toLowerCase();
+ if(/chuyển|transfer|trả hsbc|trả tech credit/.test(low)){let amount=parseAmount(text);let names=['Tech chính','Tech tiết kiệm','Tech tiền nhà','VietinBank','Tech Credit','HSBC Credit'];let found=names.filter(n=>low.includes(n.toLowerCase().replace('chính','')));return [{type:'transfer',amount,category:null,note:text,account:found[0]||'Tech chính',toAccount:found[1]||(/tiết kiệm/.test(low)?'Tech tiết kiệm':/hsbc/.test(low)?'HSBC Credit':null)}]}
+ if(/lương|salary/.test(low)){return [{type:'income',amount:parseAmount(text),category:'Salary',note:text,account:accountOf(text,'Salary')}]}
+ if(/trả lại|hoàn tiền|refund|reimburse/.test(low)){return [{type:'refund',amount:parseAmount(text),category:'Refund',note:text,account:accountOf(text,'Refund')}]}
+ return text.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean).map(part=>{let cat=categoryOf(part);return {type:'expense',amount:parseAmount(part),category:cat,note:part,account:accountOf(part,cat)}}).filter(x=>x.amount>0)
+}
