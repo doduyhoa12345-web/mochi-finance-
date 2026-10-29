@@ -1,0 +1,1 @@
+{"name":"mochi-finance","version":"0.3.0","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start","db:init":"node scripts/init-db.mjs"},"dependencies":{"next":"16.4.0","react":"19.2.0","react-dom":"19.2.0","postgres":"^3.4.7"}}
